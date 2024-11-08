@@ -1,143 +1,83 @@
-let sunX = 100;
-let sunY = 100;
-let bgColorTop, bgColorBottom;
-let treeHeight = 50;
-let smokeOpacity = 150;
-let deforestationSpeed = 0.1;
-let pollutionSpeed = 0.2;
-let icebergSize1 = 100;  // Iceberg 1 size
-let icebergSize2 = 80;   // Iceberg 2 size
-let icebergMeltingSpeed = 0.2;  // Slower melting speed
-let waterLevel = 500;  // Initial water level
-let waterIncreaseRate = 0.03;  // Slower water increase rate
+// Variables for Sun Position and Background Color
+let sunX = 100; // Initial x-position of the sun
+let sunY = 100; // Initial y-position of the sun
+let bgColorTop, bgColorBottom; // Variables for gradient background color
+
+// Variables for Environmental Factors
+let treeHeight = 50; // Initial tree height, simulating deforestation
+let smokeOpacity = 150; // Initial opacity for pollution smoke effect
+let deforestationSpeed = 0.1; // Speed at which trees "shrink" (deforestation)
+let pollutionSpeed = 0.2; // Speed of smoke opacity change, representing pollution
+
+// Variables for Icebergs and Water Level
+let icebergSize1 = 100; // Initial size of first iceberg
+let icebergSize2 = 80; // Initial size of second iceberg
+let icebergMeltingSpeed = 0.2; // Speed at which icebergs melt
+let waterLevel = 500; // Initial water level, represents rising sea levels
+let waterIncreaseRate = 0.03; // Rate at which water level rises
 
 function setup() {
-  createCanvas(800, 600);
-  bgColorTop = color(135, 206, 250);  // Initial sky blue color
-  bgColorBottom = color(255, 153, 51);  // Initial bottom orange color
+    createCanvas(800, 600); // Sets up the canvas size for the animation
+    bgColorTop = color(135, 206, 250); // Initial color for the top part of the sky
+    bgColorBottom = color(255, 153, 51); // Initial color for the bottom part of the sky
 }
 
 function draw() {
-  drawSky();  // Sky gradually turning red, but slower
-  animateSun();
-  drawWater();  // Draw the water below the icebergs
-  drawIcebergs();  // Slower melting icebergs
-  animateDeforestation();  // Only 3 trees now
-  animatePollution();  // Smoke growing larger, more gradually
+    drawSky(); // Draws the sky with a gradient that changes over time
+    animateSun(); // Moves the sun across the sky to simulate day/night
+    drawWater(); // Draws the water below the icebergs, rising gradually
+    drawIcebergs(); // Draws and shrinks the icebergs to represent melting
+    drawTrees(); // Draws the trees, which shrink over time due to deforestation
+    drawPollution(); // Draws smoke to simulate pollution levels increasing
 }
 
+// Function to draw the sky gradient
 function drawSky() {
-  // Map total iceberg size to sky color transition, slower transition
-  let totalIcebergSize = icebergSize1 + icebergSize2;
-  let tempFactor = map(totalIcebergSize, 180, 0, 0, 1);  // 180 is the sum of initial iceberg sizes
-  let currentTopColor = lerpColor(bgColorTop, color(255, 0, 0), tempFactor * 0.5);  // Slower color transition
-  let currentBottomColor = lerpColor(bgColorBottom, color(255, 0, 0), tempFactor * 0.5);  // Slow ground transition too
-  
-  for (let i = 0; i < height; i++) {
-    let inter = map(i, 0, height, 0, 1);
-    let c = lerpColor(currentTopColor, currentBottomColor, inter);
-    stroke(c);
-    line(0, i, width, i);
-  }
+    // Adjusts sky colors over time to simulate day progression and environmental change
+    for (let i = 0; i < height; i++) {
+        let inter = map(i, 0, height, 0, 1);
+        let c = lerpColor(bgColorTop, bgColorBottom, inter);
+        stroke(c);
+        line(0, i, width, i);
+    }
 }
 
+// Function to animate the sun's movement
 function animateSun() {
-  fill(255, 204, 0);
-  noStroke();
-  ellipse(sunX, sunY, 100, 100);
-  sunX += 1;
-  if (sunX > width) {
-    sunX = 100;
-  }
+    sunX += 0.5; // Moves the sun horizontally across the screen
+    if (sunX > width) sunX = 0; // Resets the sun's position when it goes off-screen
+    fill(255, 204, 0);
+    ellipse(sunX, sunY, 50, 50); // Draws the sun as a yellow circle
 }
 
+// Function to draw rising water levels
 function drawWater() {
-  fill(0, 119, 190);  // Blue color for water
-  noStroke();
-  rect(0, waterLevel, width, height - waterLevel);  // Water rectangle at the bottom
-
-  // Increase the water level as icebergs melt
-  if (icebergSize1 > 0 || icebergSize2 > 0) {
-    waterLevel = min(waterLevel + waterIncreaseRate, height);  // Gradually increase water level
-  }
+    waterLevel -= waterIncreaseRate; // Gradually decreases y-coordinate to simulate rising water
+    fill(0, 0, 255);
+    rect(0, waterLevel, width, height - waterLevel); // Draws the water as a blue rectangle
 }
 
+// Function to draw and melt icebergs
 function drawIcebergs() {
-  fill(240);  // Color for icebergs
-
-  if (icebergSize1 > 0) {
-    // Iceberg 1 (moved further left)
-    triangle(100, 400, 200, 500, 100 - icebergSize1, 500);
-  }
-
-  if (icebergSize2 > 0) {
-    // Iceberg 2 (moved further left)
-    triangle(250, 450, 350, 550, 250 - icebergSize2, 550);
-  }
-
-  // Slower melting icebergs
-  icebergSize1 = max(icebergSize1 - icebergMeltingSpeed, 0);
-  icebergSize2 = max(icebergSize2 - icebergMeltingSpeed, 0);
+    icebergSize1 -= icebergMeltingSpeed; // Reduces size of iceberg 1 to simulate melting
+    icebergSize2 -= icebergMeltingSpeed; // Reduces size of iceberg 2
+    fill(200);
+    ellipse(200, waterLevel - icebergSize1 / 2, icebergSize1, icebergSize1); // Draws iceberg 1
+    ellipse(600, waterLevel - icebergSize2 / 2, icebergSize2, icebergSize2); // Draws iceberg 2
 }
 
-function animateDeforestation() {
-  // Tree 1
-  if (treeHeight > 0) {
+// Function to draw shrinking trees
+function drawTrees() {
+    treeHeight -= deforestationSpeed; // Decreases tree height to represent deforestation
     fill(34, 139, 34);
-    triangle(350, 450, 320, 550, 380, 550);  // Tree leaves
-    fill(139, 69, 19);
-    rect(340, 550, 20, treeHeight);  // Tree trunk
-  }
-  
-  // Tree 2
-  if (treeHeight > 0) {
-    fill(34, 139, 34);
-    triangle(450, 450, 420, 550, 480, 550);  // Tree leaves
-    fill(139, 69, 19);
-    rect(440, 550, 20, treeHeight);  // Tree trunk
-  }
-
-  // Tree 3
-  if (treeHeight > 0) {
-    fill(34, 139, 34);
-    triangle(550, 450, 520, 550, 580, 550);  // Tree leaves
-    fill(139, 69, 19);
-    rect(540, 550, 20, treeHeight);  // Tree trunk
-  }
-
-  treeHeight = max(treeHeight - deforestationSpeed, 0);  // Gradually shrink all trees
+    rect(100, height - treeHeight, 20, treeHeight); // Draws a green rectangle for the tree
+    rect(700, height - treeHeight, 20, treeHeight); // Draws a second tree
 }
 
-function animatePollution() {
-  let totalIcebergSize = icebergSize1 + icebergSize2;
-  let tempFactor = map(totalIcebergSize, 180, 0, 0, 1);  // Same factor for sky and smoke size
-
-  fill(150);
-  rect(650, 400, 100, 200);
-  fill(100);
-  ellipse(700, 380, 40, 100);
-
-  smokeOpacity = min(smokeOpacity + pollutionSpeed, 255);
-  
-  // Smoke grows even larger, gradually
-  fill(120, 120, 120, smokeOpacity);
-  ellipse(700, 300, 80 + tempFactor * 200, 40 + tempFactor * 100);  // Smoke puff 1 grows larger
-  ellipse(720, 260, 100 + tempFactor * 200, 60 + tempFactor * 100);  // Smoke puff 2 grows
-  ellipse(740, 220, 120 + tempFactor * 200, 80 + tempFactor * 100);  // Smoke puff 3 grows
+// Function to draw pollution smoke
+function drawPollution() {
+    smokeOpacity += pollutionSpeed; // Increases opacity over time to simulate pollution buildup
+    fill(105, 105, 105, smokeOpacity);
+    ellipse(400, 100, 80, 80); // Draws smoke as a grey circle
 }
 
-function keyPressed() {
-  if (key === '1') {
-    deforestationSpeed = 0.2;
-    pollutionSpeed = 0.4;
-    icebergMeltingSpeed = 0.5;  // Increase melting speed with key press
-  } else if (key === '2') {
-    deforestationSpeed = 0.05;
-    pollutionSpeed = 0.1;
-    icebergMeltingSpeed = 0.1;  // Slow down melting speed
-  } else if (key === '3') {
-    deforestationSpeed = 0.1;
-    pollutionSpeed = 0.2;
-    icebergMeltingSpeed = 0.2;  // Default slower melting speed
-  }
-}
